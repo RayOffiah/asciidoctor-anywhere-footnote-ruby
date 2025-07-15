@@ -1,0 +1,18 @@
+GEM
+  remote: https://rubygems.org/
+  specs:
+    asciidoctor (2.0.23)
+    minitest (5.25.5)
+    ruby-enum (1.0.0)
+
+PLATFORMS
+  ruby
+  x86_64-darwin-23
+
+DEPENDENCIES
+  asciidoctor
+  minitest
+  ruby-enum
+
+BUNDLED WITH
+   2.6.9
