@@ -17,21 +17,23 @@ class Anywhere_Footnote_Test < Minitest::Test
   def test_basic_functionality
 
     input_document = <<~EOF
-          = Test document
+
+= Test document
 
 
-      ++++
-      <link rel="stylesheet" href="anywhere-footnote.css"/>
-      ++++
+++++
+<link rel="stylesheet" href="anywhere-footnote.css"/>
+++++
 
-      This is a test document.
-      It has two lines{empty}afnote:first-block[This is a footnote, refid=test, lbrace='{', rbrace=}], the last of which will contain a footnote
+This is a test document.
+It has two lines{empty}afnote:first-block[This is a footnote], the last of which will contain a footnote
 
-      afnote:first-block[]
+afnote:first-block[]
+    
+EOF
 
-    EOF
-
-    output_document = Asciidoctor.convert(input_document, backend: :html5, header_footer: false, safe: :safe)
+    output_document = Asciidoctor.convert(input_document, backend: :html5, header_footer: false, safe: :safe, standalone: true)
+    File.write("basic.html", output_document)
 
   end
 end

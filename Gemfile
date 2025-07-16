@@ -6,4 +6,5 @@ gem "asciidoctor"
 gem "minitest"
 gem "ruby-enum"
 gem "string_pattern"
+gem "roman-numerals"
 

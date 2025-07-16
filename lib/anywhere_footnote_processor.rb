@@ -1,6 +1,7 @@
 require 'asciidoctor'
 require 'ruby-enum'
 require 'string_pattern'
+require 'roman-numerals'
 
 class Format
   include Ruby::Enum
@@ -13,7 +14,6 @@ end
 
 OMIT_SEPARATOR = 'omit-separator'
 $footnote_list = []
-
 
 class AnywhereFootnote
   attr_accessor :block_id, :ref_id, :text_parameter, :footnote_marker, :lbrace, :rbrace
@@ -34,7 +34,6 @@ class AnywhereFootnoteProcessor < Asciidoctor::Extensions::InlineMacroProcessor
   use_dsl
 
   named :afnote
-  name_positional_attributes 'refid', 'reftext', 'marker', 'lbrace', 'rbrace', 'omit-separator'
 
   AFNOTE_FORMAT = 'afnote-format'
 
@@ -59,7 +58,8 @@ class AnywhereFootnoteProcessor < Asciidoctor::Extensions::InlineMacroProcessor
                          true
                        end
 
-      process_footnote_block(self, parent, target, omit_separator)
+      return process_footnote_block(self, parent, target, omit_separator)
+
 
     end
 
@@ -76,6 +76,8 @@ class AnywhereFootnoteProcessor < Asciidoctor::Extensions::InlineMacroProcessor
 
     footnote.ref_id = if attrs.has_key? 'refid'
                         attrs['refid']
+                      else
+                        StringPattern.generate "8:NL"
                       end
     footnote.footnote_marker = if attrs.has_key? 'marker'
                                  attrs['marker']
@@ -92,12 +94,14 @@ class AnywhereFootnoteProcessor < Asciidoctor::Extensions::InlineMacroProcessor
                         '&#93;'
                       end
 
-     #  This odd bit of code is to ensure that we don't end up setting duplicate anchor ids
-     #  for footnotes that reference other footnotes. In this case, the second footnote
-     #  is assigned another random string, which means we won't be able to click to it
-     # from the footnote block.
+    #  This odd bit of code is to ensure that we don't end up setting duplicate anchor ids
+    #  for footnotes that reference other footnotes. In this case, the second footnote
+    #  is assigned another random string, which means we won't be able to click to it
+    # from the footnote block.
 
-    id_string = if $footnote_list.any? {|f| f.ref_id == footnote.ref_id}
+    add_footnote_reference(footnote, false)
+
+    id_string = if $footnote_list.any? { |f| f.ref_id == footnote.ref_id }
                   ""
                 else
                   "#{footnote.block_id}-#{footnote.ref_id}"
@@ -105,7 +109,9 @@ class AnywhereFootnoteProcessor < Asciidoctor::Extensions::InlineMacroProcessor
 
     inline = create_footnote_reference(footnote, id_string)
 
-    self.create_inline parent, :quoted, inline, :attributes => { 'role' => 'anywhere-footnote-marker'}
+    $footnote_list << footnote
+
+    self.create_inline parent, :quoted, inline, :attributes => { 'role' => 'anywhere-footnote-marker' }
 
   end
 
@@ -125,7 +131,7 @@ class AnywhereFootnoteProcessor < Asciidoctor::Extensions::InlineMacroProcessor
 
     else
       unless footnote.footnote_marker
-        footnote.footnote_marker = "#{counter}"
+        footnote.footnote_marker = formatted_number(counter)
       end
     end
 
@@ -133,10 +139,44 @@ class AnywhereFootnoteProcessor < Asciidoctor::Extensions::InlineMacroProcessor
 
   def get_existing_footnote_marker(footnote_list, ref_id)
 
-    footnote_list.find {|f| f.ref_id == ref_id}
+    footnote_list.find { |f| f.ref_id == ref_id }
 
   end
+
   def process_footnote_block(processor, parent, target, omit_separator)
+
+    block_id = target
+
+    grouped_footnotes = $footnote_list.group_by { |f| f.block_id }
+    selected_block = grouped_footnotes[block_id]
+
+    unless selected_block
+      throw "No footnotes found for block #{block_id}"
+    end
+
+    separator_text = if omit_separator
+                       ""
+                     else
+                       self.create_block(parent, :paragraph, "", {"role" => "anywhere-footnote-hr-divider"}).convert
+                     end
+
+    footnote_block_list = self.create_list(parent, :dlist, {"role" => "anywhere-footnote-horizontal"})
+
+    selected_block.each do |footnote|
+      term = "xref:#{footnote.block_id}-#{footnote.ref_id}-ref[#{footnote.lbrace}#{footnote.footnote_marker}#{footnote.rbrace}, role='anywhere-footnote-marker'][[#{footnote.block_id}-#{footnote.ref_id}-block]]"
+      description ="#{footnote.text_parameter}"
+
+      dlist_term = self.create_list_item(footnote_block_list, term)
+      dlist_description = self.create_list_item(footnote_block_list, description)
+
+      dlist_item = [[dlist_term], dlist_description]
+
+      footnote_block_list.items << dlist_item
+
+    end
+
+    self.create_inline parent, :quoted, "#{separator_text}\n#{footnote_block_list.convert}", :attributes => { 'role' => 'anywhere-footnote-block' }
+
 
   end
 
@@ -150,11 +190,24 @@ class AnywhereFootnoteProcessor < Asciidoctor::Extensions::InlineMacroProcessor
   def number_of_footnotes_in_block(block_id, block_reset = false)
 
     if block_reset
-      $footnote_list.find_all {|f| f.block_id == block_id and f.text_parameter }.size
+      $footnote_list.find_all { |f| f.block_id == block_id and f.text_parameter }.size
     else
-      $footnote_list.find_all {|f| f.block_id == block_id}.size
+      $footnote_list.find_all { |f| f.block_id == block_id }.size
     end
 
+  end
+
+  def formatted_number(number, format = :ARABIC)
+    case format
+    when :ARABIC
+      number.to_s
+    when :ROMAN
+      RomanNumerals.to_roman(number)
+    when :ALPHA
+      'a' + (number - 1).to_s
+    else
+      throw "Unknown format"
+    end
   end
 
 end

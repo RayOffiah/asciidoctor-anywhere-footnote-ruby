@@ -4,6 +4,7 @@ GEM
     asciidoctor (2.0.23)
     minitest (5.25.5)
     regexp_parser (2.10.0)
+    roman-numerals (0.3.0)
     ruby-enum (1.0.0)
     string_pattern (2.3.0)
       regexp_parser (~> 2.5, >= 2.5.0)
@@ -15,6 +16,7 @@ PLATFORMS
 DEPENDENCIES
   asciidoctor
   minitest
+  roman-numerals
   ruby-enum
   string_pattern
 
