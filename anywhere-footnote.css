@@ -18,8 +18,8 @@
 
 div.anywhere-footnote-horizontal dl {
     display: grid;
-    grid-template-columns: 25px auto;
-    grid-column-gap: 1px;
+    grid-template-columns: 30px auto;
+    grid-column-gap: 5px;
 }
 
 /* Force each dt and dd to be on the same line */
