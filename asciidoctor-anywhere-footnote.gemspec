@@ -1,13 +1,13 @@
 # asciidoctor-anywhere-footnote.gemspec
 Gem::Specification.new do |spec|
   spec.name          = "asciidoctor-anywhere-footnote"
-  spec.version       = "1.0.0"
+  spec.version       = "1.0.2"
   spec.authors       = ["Ray Offiah"]
   spec.email         = ["ray.offiah@couchbase.com"]
 
   spec.summary       = "An Asciidoctor extension for placing footnotes anywhere in the document"
   spec.description   = "This extension allows you to place footnotes near their referenced content rather than at the end of the document, with support for multiple footnote blocks, custom formatting, and reference management."
-  spec.homepage      = "https://github.com/yourusername/asciidoctor-anywhere-footnote"
+  spec.homepage      = "https://github.com/RayOffiah/asciidoctor-anywhere-footnote-ruby"
   spec.license       = "MIT"
 
   spec.required_ruby_version = ">= 2.5.0"
