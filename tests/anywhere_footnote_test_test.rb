@@ -2,7 +2,7 @@
 
 require 'asciidoctor'
 
-require_relative '../lib/anywhere_footnote_processor'
+require_relative '../lib/asciidoctor/anywhere_footnote_processor'
 require 'minitest/autorun'
 
 class Anywhere_Footnote_Test < Minitest::Test
