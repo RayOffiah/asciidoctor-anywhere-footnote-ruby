@@ -1,7 +1,7 @@
 # asciidoctor-anywhere-footnote.gemspec
 Gem::Specification.new do |spec|
   spec.name          = "asciidoctor-anywhere-footnote"
-  spec.version       = "1.0.2"
+  spec.version       = "1.0.3"
   spec.authors       = ["Ray Offiah"]
   spec.email         = ["ray.offiah@couchbase.com"]
 
