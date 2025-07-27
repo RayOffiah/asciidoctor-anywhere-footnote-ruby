@@ -11,7 +11,6 @@ class Format
 
 end
 
-$footnote_list = []
 
 class AnywhereFootnote
   attr_accessor :block_id, :ref_id, :text_parameter, :footnote_marker, :lbrace, :rbrace
@@ -26,6 +25,8 @@ class AnywhereFootnote
     @rbrace = ""
   end
 end
+
+$footnote_list = []
 
 class AnywhereFootnoteProcessor < Asciidoctor::Extensions::InlineMacroProcessor
 
@@ -46,6 +47,13 @@ class AnywhereFootnoteProcessor < Asciidoctor::Extensions::InlineMacroProcessor
 
   $afnote_id_prefix = AFNOTE_ID_DEFAULT_PREFIX
   $afnote_css_prefix = AFNOTE_CSS_DEFAULT_PREFIX
+
+  def initialize(backend, document)
+    super
+    @name = 'afnote'
+    @document = document
+
+  end
 
 
   def process(parent, target, attrs)
@@ -159,7 +167,16 @@ class AnywhereFootnoteProcessor < Asciidoctor::Extensions::InlineMacroProcessor
     selected_block.each do |footnote|
 
       unless footnote.text_parameter.empty?
-        term = "xref:#{$afnote_id_prefix}#{footnote.block_id}-#{footnote.ref_id}-ref[#{footnote.lbrace}#{footnote.footnote_marker}#{footnote.rbrace}, role=\"#{$afnote_css_prefix}marker\"][[#{$afnote_id_prefix}#{footnote.block_id}-#{footnote.ref_id}-def]]"
+
+        # Some footnotes in the list are pointers to other footnotes.
+        # If you have duplicate markers, then you will not be able to
+        # point back to the original footnote. (Which one would you point back to?)
+        # Instead, just use a dummy reference when the block is rendered.
+
+        xref_text = $footnote_list.count { |f| f.ref_id == footnote.ref_id } <= 1 ? "xref:#{$afnote_id_prefix}#{footnote.block_id}-#{footnote.ref_id}-ref" : "xref:#"
+
+        term = "[[#{$afnote_id_prefix}#{footnote.block_id}-#{footnote.ref_id}-def]]#{xref_text}[#{footnote.lbrace}#{footnote.footnote_marker}#{footnote.rbrace}, role=\"#{$afnote_css_prefix}marker\"]"
+
         description = "#{footnote.text_parameter}"
 
         dlist_term = self.create_list_item(footnote_block_list, term)

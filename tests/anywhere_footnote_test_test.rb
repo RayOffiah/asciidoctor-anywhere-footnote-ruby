@@ -35,6 +35,10 @@ EOF
     output_document = Asciidoctor.convert(input_document, backend: :html5, header_footer: false, safe: :safe, standalone: true)
     File.write("basic.html", output_document)
 
+    assert(output_document.include?(%q{class="paragraph afnote-hr-divider}))
+    assert(output_document.include?(%q{#afnote-first-block-1-def}))
+    assert(output_document.include?(%q{<a id="afnote-first-block-1-def"></a><a href="#afnote-first-block-1-ref" class="afnote-marker">1</a>}))
+
   end
 
   def test_for_two_footnotes
@@ -57,6 +61,10 @@ EOF
 
     output_document = Asciidoctor.convert(input_document, backend: :html5, header_footer: false, safe: :safe, standalone: true)
     File.write("two-footnotes.html", output_document)
+
+    assert(output_document.include?(%q{It has two lines<span class="afnote-marker"><a id="afnote-first-block-1-ref"></a><a href="#afnote-first-block-1-def">1</a></span>, the last of which will contain a footnote<span class="afnote-marker"><a id="afnote-first-block-2-ref"></a><a href="#afnote-first-block-2-def">2</a></span>. And we have another sentence before the block</p>}))
+    assert(output_document.include?(%q{<a href="#afnote-first-block-1-ref" class="afnote-marker">1</a>}))
+    assert(output_document.include?(%q{<a href="#afnote-first-block-2-ref" class="afnote-marker">2</a>}))
 
   end
 
@@ -84,6 +92,9 @@ EOF
     output_document = Asciidoctor.convert(input_document, backend: :html5, header_footer: false, safe: :safe, standalone: true)
     File.write("markers.html", output_document)
 
+    assert(output_document.include?(%q{<span class="afnote-marker"><a id="afnote-first-block-reference-ref"></a><a href="#afnote-first-block-reference-def">*</a></span>}))
+    assert(output_document.include?(%q{<span class="afnote-marker"><a href="#afnote-first-block-reference-def">*</a></span>}))
+    assert(output_document.include?(%q{<a id="afnote-first-block-reference-def"></a><a href="#" class="afnote-marker">*</a>}""))
   end
 
   def test_referencing_footnotes
@@ -106,6 +117,9 @@ afnote:first-block[]
 
     output_document = Asciidoctor.convert(input_document, backend: :html5, header_footer: false, safe: :safe, standalone: true)
     File.write("referencer.html", output_document)
+
+    assert(output_document.include?(%q{<dt class="hdlist1"><a id="afnote-first-block-reference-def"></a><a href="#" class="afnote-marker">1</a></dt>}))
+
   end
 
   def test_braces
@@ -128,6 +142,9 @@ afnote:first-block[]
 
     output_document = Asciidoctor.convert(input_document, backend: :html5, header_footer: false, safe: :safe, standalone: true)
     File.write("braces.html", output_document)
+
+    assert(output_document.include?(%q{It has two lines<span class="afnote-marker"><a id="afnote-first-block-reference-ref"></a><a href="#afnote-first-block-reference-def">{*}</a></span>}))
+    assert(output_document.include?(%q{<a id="afnote-first-block-reference-def"></a><a href="#" class="afnote-marker">{*}</a>}))
   end
 
   def test_multiple_blocks
@@ -159,5 +176,14 @@ afnote:second-block[]
 
     output_document = Asciidoctor.convert(input_document, backend: :html5, header_footer: false, safe: :safe, standalone: true)
     File.write("multiple-blocks.html", output_document)
+
+    assert(output_document.include?(%q{<a href="#afnote-first-block-1-def">a</a>}))
+    assert(output_document.include?(%q{<a id="afnote-second-block-2-ref"></a><a href="#afnote-second-block-2-def">b</a>}))
+    assert(output_document.include?(%q{<span class="afnote-block"><a id="afnote-first-block"></a>}))
+    assert(output_document.include?(%q{<span class="afnote-block"><a id="afnote-second-block"></a>}))
+    assert(output_document.include?(%q{<dt class="hdlist1"><a id="afnote-first-block-1-def"></a><a href="#afnote-first-block-1-ref" class="afnote-marker">a</a></dt>}))
+    assert(output_document.include?(%q{<dt class="hdlist1"><a id="afnote-second-block-2-def"></a><a href="#afnote-second-block-2-ref" class="afnote-marker">b</a></dt>}))
+
   end
+
 end
