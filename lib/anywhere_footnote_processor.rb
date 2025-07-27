@@ -9,6 +9,7 @@ Asciidoctor::Extensions.register do
   $footnote_list = []
 
   inline_macro AnywhereFootnoteProcessor
+
 end
 
 class Format
@@ -76,10 +77,12 @@ class AnywhereFootnoteProcessor < Asciidoctor::Extensions::InlineMacroProcessor
 
     footnote = AnywhereFootnote.new
 
-    if attrs.empty? or attrs.has_key? OMIT_SEPARATOR
+    if target[0] == ':' or   attrs.empty? or attrs.has_key? OMIT_SEPARATOR
+
       omit_separator = attrs[OMIT_SEPARATOR] == 'true'
 
-      return process_footnote_block(parent, target, (omit_separator or omit_separators_page_wide))
+      block_id = target[0] == ':' ? target[1..-1] : target
+      return process_footnote_block(parent, block_id, (omit_separator or omit_separators_page_wide))
 
 
     end
@@ -178,7 +181,7 @@ class AnywhereFootnoteProcessor < Asciidoctor::Extensions::InlineMacroProcessor
         # Some footnotes in the list are pointers to other footnotes.
         # If you have duplicate markers, then you will not be able to
         # point back to the original footnote. (Which one would you point back to?)
-        # Instead, just use a dummy reference when the block is rendered.
+        # Instead, just use a fake reference when the block is rendered.
 
         xref_text = $footnote_list.count { |f| f.ref_id == footnote.ref_id } <= 1 ? "xref:#{$afnote_id_prefix}#{footnote.block_id}-#{footnote.ref_id}-ref" : "xref:#"
 

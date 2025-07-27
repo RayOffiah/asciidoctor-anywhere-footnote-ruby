@@ -28,7 +28,7 @@ class Anywhere_Footnote_Test < Minitest::Test
 This is a test document.
 It has two lines{empty}afnote:first-block[This is a footnote], the last of which will contain a footnote
 
-afnote:first-block[]
+afnote::first-block[]
     
 EOF
 
@@ -55,7 +55,7 @@ EOF
 This is a test document.
 It has two lines{empty}afnote:first-block[This is a footnote], the last of which will contain a footnote{empty}afnote:first-block[This a second footnote]. And we have another sentence before the block
 
-afnote:first-block[]
+afnote::first-block[]
     
 EOF
 
