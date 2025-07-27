@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 require 'asciidoctor'
-require_relative '../lib/anywhere-footnote-extension'
+
 require_relative '../lib/anywhere_footnote_processor'
 require 'minitest/autorun'
 

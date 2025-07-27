@@ -2,6 +2,15 @@ require 'asciidoctor'
 require 'ruby-enum'
 require 'roman-numerals'
 
+
+
+Asciidoctor::Extensions.register do
+
+  $footnote_list = []
+
+  inline_macro AnywhereFootnoteProcessor
+end
+
 class Format
   include Ruby::Enum
 
@@ -25,8 +34,6 @@ class AnywhereFootnote
     @rbrace = ""
   end
 end
-
-$footnote_list = []
 
 class AnywhereFootnoteProcessor < Asciidoctor::Extensions::InlineMacroProcessor
 
