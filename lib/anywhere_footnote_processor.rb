@@ -1,6 +1,5 @@
 require 'asciidoctor'
 require 'ruby-enum'
-require 'string_pattern'
 require 'roman-numerals'
 
 class Format
@@ -39,6 +38,16 @@ class AnywhereFootnoteProcessor < Asciidoctor::Extensions::InlineMacroProcessor
   AFNOTE_OMIT_SEPARATORS ="afnote-omit-separators"
   OMIT_SEPARATOR = 'omit-separator'
 
+  AFNOTE_ID_PREFIX = 'afnote-id-prefix'
+  AFNOTE_CSS_PREFIX = 'afnote-css-prefix'
+
+  AFNOTE_ID_DEFAULT_PREFIX = 'afnote-'
+  AFNOTE_CSS_DEFAULT_PREFIX = 'afnote-'
+
+  $afnote_id_prefix = AFNOTE_ID_DEFAULT_PREFIX
+  $afnote_css_prefix = AFNOTE_CSS_DEFAULT_PREFIX
+
+
   def process(parent, target, attrs)
 
     document = parent.document
@@ -46,6 +55,9 @@ class AnywhereFootnoteProcessor < Asciidoctor::Extensions::InlineMacroProcessor
     afnote_format = Format.key(document.attr(AFNOTE_FORMAT) || 'arabic')
 
     omit_separators_page_wide = document.attr? AFNOTE_OMIT_SEPARATORS, "true"
+
+    $afnote_id_prefix = document.attr(AFNOTE_ID_PREFIX) || AFNOTE_ID_DEFAULT_PREFIX
+    $afnote_css_prefix = document.attr(AFNOTE_CSS_PREFIX) || AFNOTE_CSS_DEFAULT_PREFIX
 
     footnote = AnywhereFootnote.new
 
@@ -65,12 +77,12 @@ class AnywhereFootnoteProcessor < Asciidoctor::Extensions::InlineMacroProcessor
     # This means we have at least a single text parameter
     footnote.text_parameter = attrs[1] || attrs['reftext'] || ""
 
-    footnote.ref_id = attrs['refid'] || StringPattern.generate("8:NL")
+    footnote.ref_id = attrs['refid'] || (number_of_footnotes_in_block(footnote.block_id, false) + 1).to_s
 
     footnote.footnote_marker = attrs['marker'] if attrs.has_key? 'marker'
 
-    footnote.lbrace = attrs['lbrace'] || '&#91;'
-    footnote.rbrace = attrs['rbrace'] || '&#93;'
+    footnote.lbrace = attrs['lbrace'] || ''
+    footnote.rbrace = attrs['rbrace'] || ''
     
     add_footnote_reference(footnote, block_reset, afnote_format)
 
@@ -82,14 +94,14 @@ class AnywhereFootnoteProcessor < Asciidoctor::Extensions::InlineMacroProcessor
     id_string = if $footnote_list.any? { |f| f.ref_id == footnote.ref_id }
                   ""
                 else
-                  "#{footnote.block_id}-#{footnote.ref_id}"
+                  "#{$afnote_id_prefix}#{footnote.block_id}-#{footnote.ref_id}"
                 end
 
     inline = create_footnote_reference(footnote, id_string)
 
     $footnote_list << footnote
 
-    self.create_inline parent, :quoted, inline, :attributes => { 'role' => 'anywhere-footnote-marker' }
+    self.create_inline parent, :quoted, inline, :attributes => { 'role' => "#{$afnote_css_prefix}marker" }
 
   end
 
@@ -132,18 +144,22 @@ class AnywhereFootnoteProcessor < Asciidoctor::Extensions::InlineMacroProcessor
       throw "No footnotes found for block #{block_id}"
     end
 
+    # Add an ID marker
+    footnote_block_id_text  = "[[#{$afnote_id_prefix}#{block_id}]]\n"
+
+
     separator_text = if omit_separator
                        ""
                      else
-                       self.create_block(parent, :paragraph, "", {"role" => "anywhere-footnote-hr-divider"}).convert
+                       self.create_block(parent, :paragraph, "", {"role" => "#{$afnote_css_prefix}hr-divider"}).convert
                      end
 
-    footnote_block_list = self.create_list(parent, :dlist, {"role" => "anywhere-footnote-horizontal"})
+    footnote_block_list = self.create_list(parent, :dlist, {"role" => "#{$afnote_css_prefix}horizontal"})
 
     selected_block.each do |footnote|
 
       unless footnote.text_parameter.empty?
-        term = "xref:#{footnote.block_id}-#{footnote.ref_id}-ref[#{footnote.lbrace}#{footnote.footnote_marker}#{footnote.rbrace}, role='anywhere-footnote-marker'][[#{footnote.block_id}-#{footnote.ref_id}-block]]"
+        term = "xref:#{$afnote_id_prefix}#{footnote.block_id}-#{footnote.ref_id}-ref[#{footnote.lbrace}#{footnote.footnote_marker}#{footnote.rbrace}, role=\"#{$afnote_css_prefix}marker\"][[#{$afnote_id_prefix}#{footnote.block_id}-#{footnote.ref_id}-def]]"
         description = "#{footnote.text_parameter}"
 
         dlist_term = self.create_list_item(footnote_block_list, term)
@@ -156,14 +172,14 @@ class AnywhereFootnoteProcessor < Asciidoctor::Extensions::InlineMacroProcessor
 
     end
 
-    self.create_inline parent, :quoted, "#{separator_text}\n#{footnote_block_list.convert}", :attributes => { 'role' => 'anywhere-footnote-block' }
+    self.create_inline parent, :quoted, "#{footnote_block_id_text}\n#{separator_text}\n#{footnote_block_list.convert}", :attributes => { 'role' => "#{$afnote_css_prefix}block" }
 
 
   end
 
   def create_footnote_reference(footnote, id_string)
 
-    base_xref = "xref:#{footnote.block_id}-#{footnote.ref_id}-block[#{footnote.lbrace}#{footnote.footnote_marker}#{footnote.rbrace}]"
+    base_xref = "xref:#{$afnote_id_prefix}#{footnote.block_id}-#{footnote.ref_id}-def[#{footnote.lbrace}#{footnote.footnote_marker}#{footnote.rbrace}]"
 
     (not id_string.empty?) ? "[[#{id_string}-ref]]#{base_xref}" : base_xref
 
@@ -184,7 +200,7 @@ class AnywhereFootnoteProcessor < Asciidoctor::Extensions::InlineMacroProcessor
     when :ARABIC
       number.to_s
     when :ROMAN
-      RomanNumerals.to_roman(number)
+      RomanNumerals.to_roman(number).downcase
     when :ALPHA
       number_to_letter(number)
     else
