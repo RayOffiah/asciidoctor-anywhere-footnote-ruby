@@ -179,8 +179,6 @@ afnote:second-block[]
 
     assert(output_document.include?(%q{<a href="#afnote-first-block-1-def">a</a>}))
     assert(output_document.include?(%q{<a id="afnote-second-block-2-ref"></a><a href="#afnote-second-block-2-def">b</a>}))
-    assert(output_document.include?(%q{<span class="afnote-block"><a id="afnote-first-block"></a>}))
-    assert(output_document.include?(%q{<span class="afnote-block"><a id="afnote-second-block"></a>}))
     assert(output_document.include?(%q{<dt class="hdlist1"><a id="afnote-first-block-1-def"></a><a href="#afnote-first-block-1-ref" class="afnote-marker">a</a></dt>}))
     assert(output_document.include?(%q{<dt class="hdlist1"><a id="afnote-second-block-2-def"></a><a href="#afnote-second-block-2-ref" class="afnote-marker">b</a></dt>}))
 
@@ -205,7 +203,7 @@ This is a test document for tables.
 |ID |Name |Description
 
 |1
-|Product Aafnote:first-block[This is the first footnote]
+|Product A{empty}afnote:first-block[This is the first footnote]
 |High-quality widget with advanced features{empty}afnote:first-block[This is the second]
 
 |2
@@ -223,7 +221,7 @@ This is a test document for tables.
 |Quarter |Product |Units Sold |Revenue ($) |Profit Margin (%)
 
 |Q1
-|Smartphone Xafnote:second-block[This is for the second block.]
+|Smartphone X{empty}afnote:second-block[This is for the second block.]
 |5,420
 |$1,084,000
 |32.5
@@ -289,7 +287,7 @@ afnote::second-block[]
 |===
 |Product |Price ($) |Rating (1-5) |Stock Status
 
-|Premium Headphonesafnote:mid-block[Special offer!] |249.99 |4.7 |In Stock
+|Premium Headphones{empty}afnote:mid-block[Special offer!] |249.99 |4.7 |In Stock
 
 |Wireless Speaker |129.95 |4.2 |Limited
 

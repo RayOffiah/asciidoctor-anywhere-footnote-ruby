@@ -1,0 +1,6 @@
+extends: default
+
+role:
+  afnote-block:
+    text-decoration: none
+

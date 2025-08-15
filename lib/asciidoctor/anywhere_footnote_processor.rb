@@ -163,7 +163,6 @@ class AnywhereFootnoteProcessor < Asciidoctor::Extensions::InlineMacroProcessor
     end
 
     # Add an ID marker
-    footnote_block_id_text  = "[[#{$afnote_id_prefix}#{block_id}]]\n"
 
 
     separator_text = if omit_separator
@@ -199,7 +198,7 @@ class AnywhereFootnoteProcessor < Asciidoctor::Extensions::InlineMacroProcessor
 
     end
 
-    self.create_inline parent, :quoted, "#{footnote_block_id_text}\n#{separator_text}\n#{footnote_block_list.convert}", :attributes => { 'role' => "#{$afnote_css_prefix}block" }
+    self.create_inline parent, :quoted, "#{separator_text}\n#{footnote_block_list.convert}"
 
 
   end
